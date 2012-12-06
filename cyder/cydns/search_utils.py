@@ -46,7 +46,7 @@ def smart_fqdn_exists(fqdn, *args, **kwargs):
         label = fqdn.split('.')[0]
         domain_name = '.'.join(fqdn.split('.')[1:])
         search_domain = cydns.domain.models.Domain.objects.get(
-            name=domain_name)
+                                                            name=domain_name)
     except ObjectDoesNotExist, e:
         search_domain = None
     if search_domain:

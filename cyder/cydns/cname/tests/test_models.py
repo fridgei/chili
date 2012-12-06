@@ -7,6 +7,7 @@ from cyder.cydns.nameserver.models import Nameserver
 from cyder.cydns.mx.models import MX
 from cyder.cydns.srv.models import SRV
 from cyder.cydns.txt.models import TXT
+from cyder.cydns.ptr.models import PTR
 from cyder.cydns.cname.models import CNAME
 from cyder.cydns.address_record.models import AddressRecord
 
@@ -21,7 +22,7 @@ class CNAMETests(cyder.base.tests.TestCase):
     def create_domain(self, name, ip_type=None, delegated=False):
         if ip_type is None:
             ip_type = '4'
-        if name in ('arpa', 'in-addr.arpa', 'ipv6.arpa'):
+        if name in ('arpa', 'in-addr.arpa', 'ip6.arpa'):
             pass
         else:
             name = ip_to_domain_name(name, ip_type=ip_type)
@@ -128,14 +129,6 @@ class CNAMETests(cyder.base.tests.TestCase):
         domain = self.c_g
         data = "foo.com"
         self.assertRaises(ValidationError, self.do_add, *(label, domain, data))
-
-    def test_data_domain(self):
-        label = "fo1"
-        domain = self.g
-        data = "foo.dz"
-        cn = self.do_add(label, domain, data)
-
-        self.assertTrue(self.d == cn.target_domain)
 
     def test_add_bad(self):
         label = ""
@@ -327,3 +320,38 @@ class CNAMETests(cyder.base.tests.TestCase):
         cn.save()
         intr.clean()
         intr.save()
+
+    def test_ptr_exists(self):
+        """Failing: see BUG https://bugzilla.mozilla.org/show_bug.cgi?id=810106"""
+        label = "testyfoo"
+        data = "wat"
+        dom,_ = Domain.objects.get_or_create(name="cd")
+        dom,_ = Domain.objects.get_or_create(name="what.cd")
+
+        rec = PTR(ip_str="10.193.1.1", ip_type='4', name='testyfoo.what.cd')
+        rec.full_clean()
+        rec.save()
+
+        cn = CNAME(label = label, domain = dom, target = data)
+        self.assertRaises(ValidationError, cn.full_clean)
+
+    def test_ptr_cname_exists(self):
+        """Failing: see BUG https://bugzilla.mozilla.org/show_bug.cgi?id=810106"""
+        label = "testyfoo"
+        data = "wat"
+        dom,_ = Domain.objects.get_or_create(name="cd")
+        dom,_ = Domain.objects.get_or_create(name="what.cd")
+
+        cn = CNAME.objects.get_or_create(label = label, domain = dom, target = data)
+        rec = PTR(ip_str="10.193.1.1", ip_type='4', name='testyfoo.what.cd')
+
+        self.assertRaises(ValidationError, rec.clean)
+
+    def test_cname_point_to_itself(self):
+        label = "foopy"
+        data = "foopy.what.cd"
+        dom,_ = Domain.objects.get_or_create(name="cd")
+        dom,_ = Domain.objects.get_or_create(name="what.cd")
+
+        cn = CNAME(label = label, domain = dom, target = data)
+        self.assertRaises(ValidationError, cn.clean)

@@ -8,6 +8,9 @@ from cyder.cydns.validation import validate_mx_priority
 from cyder.cydns.validation import validate_ttl
 from cyder.cydns.validation import validate_name
 
+import reversion
+
+from gettext import gettext as _
 
 class MX(CydnsRecord):
     """
@@ -20,11 +23,18 @@ class MX(CydnsRecord):
                               help_text="The name of the mail server this record points to.")
     priority = models.PositiveIntegerField(null=False,
                                            validators=[validate_mx_priority])
+    template = _("{bind_name:$lhs_just} {ttl} {rdclass:$rdclass_just} "
+                 "{rdtype:$rdtype_just}{priority:$prio_just} "
+                 "{server:$rhs_just}.")
     search_fields = ('fqdn', 'server')
 
     class Meta:
         db_table = 'mx'
         unique_together = ('domain', 'label', 'server', 'priority')
+
+    @property
+    def rdtype(self):
+        return 'MX'
 
     def __str__(self):
         return "{0} {1} {3} {4} {5}".format(self.fqdn, self.ttl, 'IN', 'MX',
@@ -72,3 +82,5 @@ class MX(CydnsRecord):
         # TODO, cite an RFC.
         if CNAME.objects.filter(fqdn=self.server):
             raise ValidationError("MX records should not point to CNAMES.")
+
+#reversion.(MX)

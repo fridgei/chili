@@ -20,10 +20,10 @@ def do_setUp(self, test_class, test_data, use_domain=True, use_rdomain=False):
 
     # Create domain.
     self.soa = SOA.objects.create(primary=random_label(), contact=random_label(),
-                                  comment='test')
+                                  description='test')
     self.domain = Domain.objects.create(name=random_label(), soa=self.soa)
     self.soa2 = SOA.objects.create(primary=random_label(), contact=random_label(),
-                                   comment='test2')
+                                   description='test2')
     self.reverse_domain = Domain.objects.create(name=random_label(),
                                                 is_reverse=True, soa=self.soa2)
 
@@ -54,7 +54,7 @@ class AddressRecordViewTests(cyder.base.tests.TestCase):
             'ip_type': '4',
             'ip_str': '196.168.1.2',
             'ttl': '400',
-            'comment': 'yo',
+            'description': 'yo',
         }
 
 
@@ -130,12 +130,11 @@ class PTRViewTests(cyder.base.tests.TestCase):
 
     def post_data(self):
         return {
-            'data_domain': self.domain.pk,
             'reverse_domain': self.reverse_domain.pk,
             'name': random_label(),
             'ip_type': '4',
             'ip_str': '196.168.1.2',
-            'comment': 'yo',
+            'description': 'yo',
         }
 
 

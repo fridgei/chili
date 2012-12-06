@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from cyder.cydhcp.site.models import Site
 from cyder.base.mixins import ObjectUrlMixin
 from cyder.cydns.domain.models import Domain
+from cyder.cydhcp.utils import networks_to_Q
 
 from cyder.cydhcp.keyvalue.models import KeyValue
 
@@ -30,6 +31,11 @@ class Vlan(models.Model, ObjectUrlMixin):
 
     def __repr__(self):
         return "<Vlan {0}>".format(str(self))
+
+    def compile_Q(self):
+        """Compile a Django Q that will match any IP inside this vlan."""
+        return networks_to_Q(self.network_set.all())
+
 
     def find_domain(self):
         """

@@ -17,5 +17,4 @@ urlpatterns = patterns('',
    url(r'^site/', include('cyder.cydhcp.site.urls')),
    url(r'^range/', include('cyder.cydhcp.range.urls')),
    url(r'^build/', include('cyder.cydhcp.build.urls')),
-   url(r'^bulk_change/', include('cyder.cydhcp.bulk_change.urls')),
 )

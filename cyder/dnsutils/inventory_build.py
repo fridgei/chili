@@ -52,7 +52,7 @@ def generate_hostname(nic, site_name):
 
         if settings.FIX_M_C_M_C:
             log("Attemping to fix...", DEBUG)
-            kv = systems.models.KeyValue(key=
+            kv = system.models.KeyValue(key=
                                          "nic.{0}.dns_auto_hostname.{1}".format(nic.primary,
                                                                                 nic.alias), value='False', system=nic.system)
             kv.save()

@@ -17,7 +17,9 @@ from cyder.cydns.ip.models import Ip
 from django.conf import settings
 
 import re
+from gettext import gettext as _
 import pdb
+import reversion
 
 
 class StaticInterface(BaseAddressRecord, models.Model, ObjectUrlMixin):
@@ -114,7 +116,11 @@ class StaticInterface(BaseAddressRecord, models.Model, ObjectUrlMixin):
     @classmethod
     def get_api_fields(cls):
         return super(StaticInterface, cls).get_api_fields() + ['mac',
-                                                               'dhcp_enabled', 'dns_enabled']
+                                                               'dhcp_enabled',
+                                                               'dns_enabled']
+    @property
+    def rdtype(self):
+        return 'INTR'
 
     def get_update_url(self):
         return "/cydhcp/interface/{0}/update/".format(self.pk)
@@ -160,14 +166,16 @@ class StaticInterface(BaseAddressRecord, models.Model, ObjectUrlMixin):
             self.check_glue_status()
 
         super(StaticInterface, self).clean(validate_glue=False,
-                                           update_reverse_domain=True, ignore_interface=True)
+                                           update_reverse_domain=True,
+                                           ignore_interface=True)
 
         if self.pk and self.ip_str.startswith("10."):
             p = View.objects.filter(name="private")
             if p:
                 self.views.add(p[0])
                 super(StaticInterface, self).clean(validate_glue=False,
-                                                   update_reverse_domain=True, ignore_interface=True)
+                                                   update_reverse_domain=True,
+                                                   ignore_interface=True)
 
     def check_glue_status(self):
         """If this interface is a 'glue' record for a Nameserver instance,
@@ -189,6 +197,20 @@ class StaticInterface(BaseAddressRecord, models.Model, ObjectUrlMixin):
                                   "for a Nameserver. Change the Nameserver to edit this "
                                   "record.")
 
+    A_template = _("{bind_name:$rhs_just} {ttl} {rdclass:$rdclass_just}"
+                   "{rdtype_clob:$rdtype_just} {ip_str:$lhs_just}")
+    PTR_template = _("{dns_ip:$lhs_just} {ttl} {rdclass:$rdclass_just}"
+                     " {rdtype_clob:$rdtype_just} {fqdn:1}.")
+
+    def bind_render_record(self, pk=False, **kwargs):
+        self.rdtype_clob = kwargs.pop('rdtype', 'INTR')
+        if kwargs.pop('reverse', False):
+            self.template = self.PTR_template
+            self.dns_ip = ip_to_dns_form(self.ip_str)
+        else:
+            self.template = self.A_template
+        return super(StaticInterface, self).bind_render_record(pk=pk, **kwargs)
+
     def record_type(self):
         return "A/PTR"
 
@@ -209,6 +231,9 @@ class StaticInterface(BaseAddressRecord, models.Model, ObjectUrlMixin):
         #        self.fqdn, self.mac)
         return "IP:{0} Full Name:{1}".format(self.ip_str,
                                              self.fqdn)
+
+
+##reversion.(StaticInterface)
 
 
 is_eth = re.compile("^eth$")
@@ -263,3 +288,5 @@ class StaticIntrKeyValue(KeyValue):
         if not (is_eth.match(self.value) or is_mgmt.match(self.value)):
             raise ValidationError("Interface type must either be 'eth' "
                                   "or 'mgmt'")
+
+##reversion.(StaticIntrKeyValue)

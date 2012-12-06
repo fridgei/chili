@@ -22,7 +22,7 @@ urlpatterns = patterns('',
    (r'^cydhcp/', include('cyder.cydhcp.urls')),
 
    (r'^ctnr/', include('cyder.core.ctnr.urls')),
-   (r'^search/', include('cyder.core.search.urls')),
+   (r'^search/', include('cyder.search.urls')),
 
    url(r'^login/$', cyuser_views.cylogin, name='login'),
    url(r'^logout/$', cyuser_views.cylogout, name='logout'),

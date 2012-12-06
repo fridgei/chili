@@ -26,7 +26,7 @@ class AutoDeleteTests(TestCase):
 
     def setUp(self):
         s, _ = SOA.objects.get_or_create(primary="foo", contact="Foo",
-                                         comment="foo")
+                                         description="foo")
         self.c = Domain(name='poo')
         self.c.save()
         self.assertFalse(self.c.purgeable)
@@ -117,8 +117,7 @@ class AutoDeleteTests(TestCase):
 
         fqdn = "bar.x.y.z.foo.poo"
         label, the_domain = ensure_label_domain(fqdn)
-        srv = SRV(
-            label='_' + label, domain=the_domain, target="foo", priority=4,
+        srv = SRV(label='_' + label, domain=the_domain, target="foo", priority=4,
             weight=4, port=34)
         srv.save()
         self.assertFalse(prune_tree(the_domain))
@@ -135,7 +134,7 @@ class AutoDeleteTests(TestCase):
         c.save()
         self.assertFalse(c.purgeable)
         s, _ = SOA.objects.get_or_create(primary="foo", contact="Foo",
-                                         comment="dddfoo")
+                                         description="dddfoo")
         f_c = Domain(name='foo.foo1')
         f_c.soa = s
         f_c.save()

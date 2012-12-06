@@ -28,7 +28,7 @@ class FullNameTests(TestCase):
         self.assertFalse(c.purgeable)
         f_c = Domain(name='foo.com')
         s, _ = SOA.objects.get_or_create(primary="foo", contact="foo",
-                                         comment="foo.zfoo.comom")
+                                         description="foo.zfoo.comom")
         f_c.soa = s
         f_c.save()
         self.assertFalse(f_c.purgeable)
@@ -68,7 +68,7 @@ class FullNameTests(TestCase):
         self.assertFalse(c.purgeable)
         f_c = Domain(name='foo.edu')
         s, _ = SOA.objects.get_or_create(primary="foo", contact="foo",
-                                         comment="foo.edu")
+                                         description="foo.edu")
         f_c.soa = s
         f_c.save()
         self.assertFalse(f_c.purgeable)
@@ -124,7 +124,7 @@ class FullNameTests(TestCase):
         self.assertFalse(c.purgeable)
         f_c = Domain(name='foo.foo')
         s, _ = SOA.objects.get_or_create(primary="foo", contact="foo",
-                                         comment="foo.foo")
+                                         description="foo.foo")
         f_c.soa = s
         f_c.save()
         self.assertFalse(f_c.purgeable)
@@ -153,7 +153,7 @@ class FullNameTests(TestCase):
         self.assertFalse(c.purgeable)
         f_c = Domain(name='foo.goo')
         s, _ = SOA.objects.get_or_create(primary="foo", contact="foo",
-                                         comment="foo.goo")
+                                         description="foo.goo")
         f_c.soa = s
         f_c.save()
         self.assertFalse(f_c.purgeable)
@@ -202,7 +202,7 @@ class FullNameTests(TestCase):
         self.assertFalse(c.purgeable)
         f_c = Domain(name='foo.foo22')
         s, _ = SOA.objects.get_or_create(primary="foo", contact="foo",
-                                         comment="foo.foo22")
+                                         description="foo.foo22")
         f_c.soa = s
         f_c.save()
         self.assertFalse(f_c.purgeable)
@@ -248,7 +248,7 @@ class FullNameTests(TestCase):
         self.assertFalse(c.purgeable)
         f_c = Domain(name='foo.foo1')
         s, _ = SOA.objects.get_or_create(primary="foo", contact="foo",
-                                         comment="foo.foo1")
+                                         description="foo.foo1")
         f_c.soa = s
         f_c.save()
         self.assertFalse(f_c.purgeable)

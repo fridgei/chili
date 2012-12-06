@@ -93,6 +93,8 @@ class System(DirtyFieldsMixin, models.Model):
     is_switch = models.IntegerField(
         choices=YES_NO_CHOICES, blank=True, null=True)
 
+    search_fields = "hostname", "serial", "notes", "asset_tag", "oob_ip"
+
     class Meta:
         db_table = u'systems'
 

@@ -13,7 +13,7 @@ import pdb
 
 def cydns_home(request):
     domains = Domain.objects.filter(
-        is_reverse=False).order_by('name').order_by('soa__comment')
+        is_reverse=False).order_by('name').order_by('soa__description')
     return render(request, 'cydns/cydns_index.html', {
         'domains': domains,
     })

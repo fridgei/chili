@@ -25,7 +25,7 @@ class LibTestsFreeIP(TestCase):
         d1, _ = Domain.objects.get_or_create(name="mozilla.com")
         soa, _ = SOA.objects.get_or_create(
             primary="fo.bar", contact="foo.bar.com",
-            comment="foo bar")
+            description="foo bar")
         self.s = soa
         d1.soa = soa
         d1.save()
@@ -46,7 +46,7 @@ class LibTestsFreeIP(TestCase):
 
         d, _ = Domain.objects.get_or_create(name="arpa")
         d, _ = Domain.objects.get_or_create(name="in-addr.arpa")
-        d, _ = Domain.objects.get_or_create(name="ipv6.arpa")
+        d, _ = Domain.objects.get_or_create(name="ip6.arpa")
         d, _ = Domain.objects.get_or_create(name="15.in-addr.arpa")
         d, _ = Domain.objects.get_or_create(name="2.in-addr.arpa")
         n = Network(network_str="15.0.0.0/8", ip_type="4")

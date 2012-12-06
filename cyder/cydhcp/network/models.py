@@ -11,6 +11,8 @@ from cyder.base.mixins import ObjectUrlMixin
 from cyder.cydhcp.keyvalue.models import KeyValue
 from cyder.cydhcp.keyvalue.base_option import CommonOption
 
+import reversion
+
 import ipaddr
 import pdb
 
@@ -87,7 +89,7 @@ class Network(models.Model, ObjectUrlMixin):
             if range_.start_upper < self.ip_upper:
                 fail = True
             elif (range_.start_upper > self.ip_upper and range_.start_lower <
-                  self.ip_lower):
+                    self.ip_lower):
                 fail = True
             elif (range_.start_upper == self.ip_upper and range_.start_lower
                     < self.ip_lower):
@@ -103,7 +105,7 @@ class Network(models.Model, ObjectUrlMixin):
             if range_.end_upper > brdcst_upper:
                 fail = True
             elif (range_.end_upper < brdcst_upper and range_.end_lower >
-                  brdcst_lower):
+                    brdcst_lower):
                 fail = True
             elif (range_.end_upper == brdcst_upper and range_.end_lower
                     > brdcst_lower):
@@ -117,9 +119,8 @@ class Network(models.Model, ObjectUrlMixin):
         """Update the IP filter. Used for compiling search queries and firewall
         rules."""
         self.update_network()
-        ip_info = two_to_four(
-            int(self.network.network), int(self.network.broadcast))
-        self.ipf = IPFilter(self, self.ip_type, *ip_info)
+        self.ipf = IPFilter(self.network.network, self.network.broadcast,
+                            self.ip_type, object_=self)
 
     def update_network(self):
         """This function will look at the value of network_str to update other
@@ -150,6 +151,7 @@ class Network(models.Model, ObjectUrlMixin):
 
     def __repr__(self):
         return "<Network {0}>".format(str(self))
+
 
 
 class NetworkKeyValue(CommonOption):

@@ -77,7 +77,7 @@ class DomainTests(TestCase):
         b_m = Domain(name='baz.moo')
         b_m.save()
 
-        s = SOA(primary="ns1.foo.com", contact="asdf", comment="test")
+        s = SOA(primary="ns1.foo.com", contact="asdf", description="test")
         s.save()
 
         f_m.soa = s
@@ -99,14 +99,14 @@ class DomainTests(TestCase):
         m.soa = None
         self.assertRaises(ValidationError, m.save)
 
-        s2 = SOA(primary="ns1.foo.com", contact="asdf", comment="test2")
+        s2 = SOA(primary="ns1.foo.com", contact="asdf", description="test2")
         s2.save()
 
         m.soa = s2
         self.assertRaises(ValidationError, m.save)
 
     def test_2_soa_validators(self):
-        s1, _ = SOA.objects.get_or_create(primary="ns1.foo.gaz", contact="hostmaster.foo", comment="foo.gaz2")
+        s1, _ = SOA.objects.get_or_create(primary="ns1.foo.gaz", contact="hostmaster.foo", description="foo.gaz2")
         d, _ = Domain.objects.get_or_create(name="gaz")
         d.soa = None
         d.save()
@@ -115,7 +115,7 @@ class DomainTests(TestCase):
         d1.save()
 
     def test_3_soa_validators(self):
-        s1, _ = SOA.objects.get_or_create(primary="ns1.foo2.gaz", contact="hostmaster.foo", comment="foo.gaz2")
+        s1, _ = SOA.objects.get_or_create(primary="ns1.foo2.gaz", contact="hostmaster.foo", description="foo.gaz2")
 
         r, _ = Domain.objects.get_or_create(name='9.in-addr.arpa')
         r.soa = s1
@@ -269,81 +269,3 @@ class DomainTests(TestCase):
         name = "no.to.bo"
         n_dom = Domain(name=name, delegated=False)
         self.assertRaises(ValidationError, n_dom.save)
-
-    def test_remove_domain_with_child_objects(self):
-        """Removing a domain should remove CNAMES and PTR records that
-        have data in that domain."""
-
-        name = "sucks"
-        a_dom, _ = Domain.objects.get_or_create(name=name, delegated=False)
-        a_dom.save()
-
-        name = "teebow.sucks"
-        b_dom, _ = Domain.objects.get_or_create(name=name, delegated=False)
-        b_dom.save()
-
-        name = "adsfme"
-        c_dom, _ = Domain.objects.get_or_create(name=name, delegated=False)
-        c_dom.save()
-
-        cn, _ = CNAME.objects.get_or_create(domain=c_dom, label="nddo",
-                                            target="really.teebow.sucks")
-        cn.full_clean()
-        cn.save()
-
-        ptr = PTR(
-            ip_str="128.193.2.1", name="seriously.teebow.sucks", ip_type='4')
-        ptr.full_clean()
-        ptr.save()
-
-        self.assertTrue(cn.target_domain == b_dom)
-        self.assertTrue(ptr.data_domain == b_dom)
-
-        b_dom, _ = Domain.objects.get_or_create(
-            name="teebow.sucks", delegated=False)
-        b_dom.delete()
-
-        try:
-            cn = CNAME.objects.get(pk=cn.pk)
-        except:
-            self.fail("CNAME was deleted.")
-        self.assertTrue(cn.target_domain == a_dom)
-
-        try:
-            ptr = PTR.objects.get(pk=ptr.pk)
-        except:
-            self.fail("PTR was deleted")
-        self.assertTrue(ptr.data_domain == a_dom)
-
-    def test_look_for_cnames_ptrs(self):
-        name = "sucks1"
-        a_dom, _ = Domain.objects.get_or_create(name=name, delegated=False)
-        a_dom.save()
-
-        name = "adsfme1"
-        c_dom, _ = Domain.objects.get_or_create(name=name, delegated=False)
-        c_dom.save()
-
-        cn, _ = CNAME.objects.get_or_create(domain=c_dom, label="nddo",
-                                            target="really.teebow.sucks1")
-        cn.full_clean()
-        cn.save()
-
-        ptr = PTR(
-            ip_str="128.193.2.1", name="seriously.teebow.sucks1", ip_type='4')
-        ptr.full_clean()
-        ptr.save()
-
-        name = "teebow.sucks1"
-        b_dom, _ = Domain.objects.get_or_create(name=name, delegated=False)
-        b_dom.save()
-
-        cn = CNAME.objects.get(pk=cn.pk)
-        ptr = PTR.objects.get(pk=ptr.pk)
-        self.assertTrue(cn.target_domain == b_dom)
-        self.assertTrue(ptr.data_domain == b_dom)
-        cn.label = "fooooobar"
-        cn.full_clean()
-        cn.save()
-
-        # This is to hit some LOC for coverage purposes.

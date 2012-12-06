@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import Http404
+from django.db.models import Q, F
 
 from cyder.cydhcp.interface.static_intr.models import StaticInterface
 from cyder.cydns.address_record.models import AddressRecord
@@ -126,16 +127,18 @@ def ensure_domain(name, purgeable=False, inherit_soa=False, force=False):
     return domain
 
 
-def ensure_label_domain(fqdn):
-    """
-    Returns a label and domain object.
-    """
+def ensure_label_domain(fqdn, force=False):
+    """Returns a label and domain object."""
     if fqdn == '':
         raise ValidationError("FQDN cannot be the emptry string.")
-
-    if Domain.objects.filter(name=fqdn).exists():
-        return '', Domain.objects.get(name=fqdn)
-
+    try:
+        domain = Domain.objects.get(name=fqdn)
+        if not domain.soa and not force:
+            raise ValidationError("You must create a record inside an "
+                                  "existing zones.")
+        return '', domain
+    except ObjectDoesNotExist:
+        pass
     fqdn_partition = fqdn.split('.')
     if len(fqdn_partition) == 1:
         raise ValidationError("Creating this record would force the creation "
@@ -143,6 +146,9 @@ def ensure_label_domain(fqdn):
     else:
         label, domain_name = fqdn_partition[0], '.'.join(fqdn_partition[1:])
         domain = ensure_domain(domain_name, purgeable=True, inherit_soa=True)
+        if not domain.soa and not force:
+            raise ValidationError("You must create a record inside an "
+                                  "existing zones.")
         return label, domain
 
 
@@ -168,3 +174,9 @@ def prune_tree_helper(domain, deleted_domains):
         deleted_domains.append(purged_domain)
         domain.delete()
         return prune_tree_helper(master_domain, deleted_domains)
+
+def get_zones():
+    """This function returns a list of domains that are at the root of their
+    respective zones."""
+    return Domain.objects.filter(~Q(master_domain__soa=F('soa')),
+                            soa__isnull=False)
